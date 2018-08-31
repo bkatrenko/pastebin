@@ -124,7 +124,6 @@ func (s *Server) PasteHandler() httprouter.Handle {
 		}
 
 		body = []byte(strings.TrimPrefix(stringBody, "blob="))
-
 		log.Printf("body: %v", body)
 		if err != nil {
 			http.Error(w, "Internal Error", http.StatusInternalServerError)
@@ -136,7 +135,7 @@ func (s *Server) PasteHandler() httprouter.Handle {
 			return
 		}
 
-		uuid := shortuuid.NewWithNamespace(s.config.fqdn)
+		uuid := shortuuid.NewWithNamespace(stringBody)
 		s.store.Set(uuid, string(body), cache.DefaultExpiration)
 
 		u, err := url.Parse(fmt.Sprintf("./p/%s", uuid))
