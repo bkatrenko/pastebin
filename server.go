@@ -117,6 +117,14 @@ func (s *Server) PasteHandler() httprouter.Handle {
 		s.counters.Inc("n_paste")
 
 		body, err := ioutil.ReadAll(r.Body)
+		stringBody, err := url.QueryUnescape(string(body))
+		if err != nil {
+			http.Error(w, "Internal Error", http.StatusInternalServerError)
+			return
+		}
+
+		body = []byte(strings.TrimPrefix(stringBody, "blob="))
+
 		log.Printf("body: %v", body)
 		if err != nil {
 			http.Error(w, "Internal Error", http.StatusInternalServerError)
@@ -229,6 +237,20 @@ func (s *Server) ListenAndServe() {
 	log.Fatal(
 		http.ListenAndServe(
 			s.bind,
+			s.logger.Handler(
+				s.stats.Handler(s.router),
+			),
+		),
+	)
+}
+
+// ListenAndServeTLS ...
+func (s *Server) ListenAndServeTLS(cert, key string) {
+	log.Fatal(
+		http.ListenAndServeTLS(
+			s.bind,
+			cert,
+			key,
 			s.logger.Handler(
 				s.stats.Handler(s.router),
 			),
